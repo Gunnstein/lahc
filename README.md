@@ -12,7 +12,11 @@ Download the repository to your computer and run the setup.py script, i.e
 
 ## Usage
 
-The package provides a base class for subclassing to a specific problem.
+The package provides a base class for subclassing to a specific problem. The examples is a good place to start to get into the use of the package.
+
+## Acknowledgements
+
+The package is heavily influenced by the [simanneal](https://github.com/perrygeo/simanneal) project, which implements the Simulated Annealing metaheuristic. 
 
 ## Support
 

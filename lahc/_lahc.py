@@ -131,7 +131,7 @@ class LateAcceptanceHillClimber(object):
             self.update(step, step_idle, E, None, None)
 
         steps_idle, steps = self.steps * self.idle_steps_fraction, self.steps
-        while ((step<=steps) and (step_idle<=steps_idle)
+        while ((step <= steps) and (step_idle <= steps_idle)
                and not self.user_exit):
             self.move()
             E = self.energy()

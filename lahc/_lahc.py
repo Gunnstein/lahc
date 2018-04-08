@@ -62,7 +62,7 @@ class LateAcceptanceHillClimber(object):
 
     # defaults
     steps = 100000
-    idle_steps_fraction = 0.2
+    idle_steps_fraction = 0.02
     history_length = 5000
     updates = 100
     copy_strategy = 'deepcopy'

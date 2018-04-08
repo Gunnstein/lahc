@@ -5,12 +5,11 @@ import random
 from lahc import LateAcceptanceHillClimber
 
 import matplotlib
-matplotlib.use("TKAgg")
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 plt.rc('figure', dpi=144)
 plt.rc('text', usetex=False)
 plt.style.use('classic')
-import numpy as np
 
 
 class Graph(object):
@@ -20,23 +19,29 @@ class Graph(object):
         else:
             self.figure = axes.figure
             self.axes = axes
+        plt.ion()
         self.xdata, self.ydata = [], []
         self.line, = self.axes.plot([], [], 'k')
+        self.line.set_animated(True)
         self.axes.set(xlabel='Iterations', ylabel='Energy')
-        self.axes.grid()
+        self.axes.grid(True)
+        self.axes.autoscale()
         self.canvas = self.figure.canvas
         self.canvas.draw()
         self.background = self.canvas.copy_from_bbox(self.axes.bbox)
 
-    def update_graph(self, step, energy):
-        self.xdata.append(step)
-        self.ydata.append(energy)
-        if step == 0:
-            self.axes.set(xlim=(0, self.steps), ylim=(0, max(self.ydata)))
+    def update_graph(self, x, y):
+        self.xdata.append(x)
+        self.ydata.append(y)
+        self.relim(x, y)
         self.line.set_data(self.xdata, self.ydata)
         self.canvas.restore_region(self.background)
         self.axes.draw_artist(self.line)
         self.canvas.blit(self.axes.bbox)
+
+    def relim(self, x, y):
+        if x == 0:
+            self.axes.set(xlim=(0, self.steps), ylim=(0, max(self.ydata)))
 
 
 def distance(a, b):
@@ -59,7 +64,6 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
         self.distance_matrix = distance_matrix
         LateAcceptanceHillClimber.__init__(self, initial_state=state)
         Graph.__init__(self, axes=axes)
-        self.updates = 500
 
     def move(self):
         """Swaps two cities in the route."""
@@ -78,9 +82,6 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
         self. maxstep = args[0]
         self.default_update(*args, **kwargs)
         self.update_graph(args[0], args[2])
-
-
-
 
 
 if __name__ == '__main__':
@@ -123,23 +124,22 @@ if __name__ == '__main__':
             else:
                 distance_matrix[ka][kb] = distance(va, vb)
     fig, axes = plt.subplots()
-    axes.grid()
-    for hs in [1, 100, 500, 1750, 2500, 5000]:
-        tsp = TravellingSalesmanProblem(init_state, distance_matrix, axes)
-        tsp.steps = 100000
-        tsp.idle_steps_fraction = .2
-        tsp.history_length = hs
 
-        # since our state is just a list, slice is the fastest way to copy
-        tsp.copy_strategy = "slice"
-        state, e = tsp.run()
+    tsp = TravellingSalesmanProblem(init_state, distance_matrix, axes)
+    tsp.steps = 100000
+    tsp.idle_steps_fraction = .2
+    tsp.history_length = 1750
+    tsp.updates = 500
 
-        while state[0] != 'New York City':
-            state = state[1:] + state[:1]  # rotate NYC to start
+    # since our state is just a list, slice is the fastest way to copy
+    tsp.copy_strategy = "slice"
+    state, e = tsp.run()
 
-        print()
-        print("%i mile route:" % e)
-        for city in state:
-            print("\t", city)
-        print("LAHC", tsp.maxstep)
-    plt.show(block=True)
+    while state[0] != 'New York City':
+        state = state[1:] + state[:1]  # rotate NYC to start
+
+    print()
+    print("%i mile route:" % e)
+    for city in state:
+        print("\t", city)
+    print("LAHC", tsp.maxstep)

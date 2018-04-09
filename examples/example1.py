@@ -127,8 +127,8 @@ if __name__ == '__main__':
 
     tsp = TravellingSalesmanProblem(init_state, distance_matrix, axes)
     tsp.steps = 100000
-    tsp.idle_steps_fraction = .2
-    tsp.history_length = 1750
+    tsp.idle_steps_fraction = .02
+    tsp.history_length = 2000
     tsp.updates = 500
 
     # since our state is just a list, slice is the fastest way to copy

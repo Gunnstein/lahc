@@ -19,6 +19,7 @@ class Graph(object):
         else:
             self.figure = axes.figure
             self.axes = axes
+        plt.show(block=False)
         plt.ion()
         self.xdata, self.ydata = [], []
         self.line, = self.axes.plot([], [], 'k')
@@ -40,8 +41,7 @@ class Graph(object):
         self.canvas.blit(self.axes.bbox)
 
     def relim(self, x, y):
-        if x == 0:
-            self.axes.set(xlim=(0, self.steps), ylim=(0, max(self.ydata)))
+         self.axes.set(xlim=(0, self.steps_min), ylim=(0, max(self.ydata)))
 
 
 def distance(a, b):
@@ -79,7 +79,7 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
         return e
 
     def update(self, *args, **kwargs):
-        self. maxstep = args[0]
+        self.maxstep = args[0]
         self.default_update(*args, **kwargs)
         self.update_graph(args[0], args[2])
 
@@ -124,12 +124,13 @@ if __name__ == '__main__':
             else:
                 distance_matrix[ka][kb] = distance(va, vb)
     fig, axes = plt.subplots()
+    plt.show(block=False)
+
 
     tsp = TravellingSalesmanProblem(init_state, distance_matrix, axes)
-    tsp.steps = 100000
-    tsp.idle_steps_fraction = .02
-    tsp.history_length = 2000
-    tsp.updates = 500
+    tsp.steps_min = 500000
+    tsp.history_length = 10000
+    tsp.updates_every = 500
 
     # since our state is just a list, slice is the fastest way to copy
     tsp.copy_strategy = "slice"

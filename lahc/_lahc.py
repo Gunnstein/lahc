@@ -61,18 +61,12 @@ class LateAcceptanceHillClimber(object):
     __metaclass__ = abc.ABCMeta
 
     # defaults
-    steps = 100000
+    steps_min = 100000
     idle_steps_fraction = 0.02
     history_length = 5000
-    updates = 100
+    updates_every = 100
     copy_strategy = 'deepcopy'
-    user_exit = False
     save_state_on_exit = False
-
-    # placeholders
-    best_state = None
-    best_energy = None
-    start = None
 
     def __init__(self, initial_state=None, load_state=None):
         """Initializer for the class.
@@ -93,6 +87,16 @@ class LateAcceptanceHillClimber(object):
         else:
             raise ValueError('No valid values supplied for neither \
             initial_state nor load_state')
+
+        # placeholders
+        self.step = None
+        self.step_idle = None
+        self.best_state = None
+        self.best_energy = None
+        self.best_step = None
+        self.start = None
+
+        self.user_exit = False
         signal.signal(signal.SIGINT, self.set_user_exit)
 
     @abc.abstractmethod
@@ -105,6 +109,14 @@ class LateAcceptanceHillClimber(object):
         """Return state energy"""
         pass
 
+    def terminate_search(self):
+        """Terminate the loop in run method.
+
+        Provide own implementation if necessary.
+        """
+        return ((self.step > self.steps_min)
+                and (self.step_idle > self.step*self.idle_steps_fraction))
+
     def run(self):
         """Minimize the energy of the system by Late Acceptance Hill Climbing.
 
@@ -112,8 +124,8 @@ class LateAcceptanceHillClimber(object):
         -------
             (state, energy) : the best state and energy found
         """
-        step = 0
-        step_idle = 0
+        self.step = 0
+        self.step_idle = 0
         self.start = time.time()
 
         E = self.energy()
@@ -123,48 +135,41 @@ class LateAcceptanceHillClimber(object):
 
         self.best_state = self.copy_state(self.state)
         self.best_energy = E
+        self.best_step = 0
         self.energy_history = [E] * self.history_length
 
-        trials, accepts, improves = 0, 0, 0
-        if self.updates > 0:
-            update_wave_len = self.steps / self.updates
-            self.update(step, step_idle, E, None, None)
+        trials = 0
+        self.update(self.step, self.step_idle, E)
 
-        steps_idle, steps = self.steps * self.idle_steps_fraction, self.steps
-        while ((step <= steps) and (step_idle <= steps_idle)
-               and not self.user_exit):
+        while not self.terminate_search() and not self.user_exit:
             self.move()
             E = self.energy()
             trials += 1
 
             if E >= prev_energy:
-                step_idle += 1
+                self.step_idle += 1
             else:
-                step_idle = 0
+                self.step_idle = 0
 
-            v = step % self.history_length
+            v = self.step % self.history_length
             if E < self.energy_history[v] or E <= prev_energy:
                 # accept candidate state
-                accepts += 1
                 prev_state = self.copy_state(self.state)
                 prev_energy = E
                 if E < self.best_energy:
-                    improves += 1
                     self.best_state = self.copy_state(self.state)
                     self.best_energy = E
+                    self.best_step = self.step
             else:
                 # restore previous state
                 self.state = self.copy_state(prev_state)
                 E = prev_energy
             if E < self.energy_history[v]:
                 self.energy_history[v] = E
-            step += 1
-            if self.updates > 1:
-                if (step // update_wave_len) > ((step - 1) // update_wave_len):
-                    self.update(
-                        step, step_idle, E, accepts / trials,
-                        improves / trials)
-                trials, accepts, improves = 0, 0, 0
+            self.step += 1
+            if trials == self.updates_every:
+                self.update(self.step, self.step_idle, E)
+                trials = 0
         self.state = self.copy_state(self.best_state)
         if self.save_state_on_exit:
             self.save_state()
@@ -173,20 +178,20 @@ class LateAcceptanceHillClimber(object):
         return self.best_state, self.best_energy
 
     def update(self, *args, **kwargs):
-        """Wrapper for internal update.
-        If you override the self.update method, you can chose to call the
-        self.default_update method from subclass.
-        """
+        """Wrapper for internal update. """
         self.default_update(*args, **kwargs)
 
-    def default_update(self, step, step_idle, E, acceptance, improvement):
+    def default_update(self, step, step_idle, E):
         """Default update, outputs to stderr.
+
         Prints the current number of idle steps, energy, acceptance rate,
         improvement rate, elapsed time, and remaining time.
+
         The acceptance rate indicates the percentage of moves since the last
         update that were accepted.  It includes moves that decreased the
         energy, moves that left the energy unchanged, and moves that increased
         the energy by late acceptance.
+
         The improvement rate indicates the percentage of moves since the
         last update that strictly decreased the energy.  Initially it will
         include both moves that improved the overall state and moves that
@@ -198,6 +203,7 @@ class LateAcceptanceHillClimber(object):
         s0 = "{0:>12s}{1:>12s}{2:>12s}{3:>12s}{4:>12s}{5:>12s}"
         s1 = "\r{0:>12n}{1:>12.2e}{2:>12s}"
         s2 = "\r{0:>12n}{1:>12.3e}{2:>11.2f}%{3:>11.2f}%{4:>12s}{5:>12s}\r"
+
         if step == 0:
             print(s0.format(
                 "Idle steps", "Energy", "Accept", "Improve", "Elapsed",
@@ -206,9 +212,9 @@ class LateAcceptanceHillClimber(object):
                   file=sys.stderr, end="\r")
             sys.stderr.flush()
         else:
-            remain = (self.steps - step) * (elapsed / step)
+            remain = (self.steps_min - step) * (elapsed / step)
             print(s2.format(
-                step_idle, E, 100.0 * acceptance, 100.0 * improvement,
+                step_idle, E, 100.0 * 1, 100.0 * 1,
                 time_string(elapsed), time_string(remain)), file=sys.stderr,
                 end="\r")
             sys.stderr.flush()

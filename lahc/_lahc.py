@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
-
 import abc
 import copy
 import datetime
@@ -57,12 +56,11 @@ class LateAcceptanceHillClimber(object):
 
     which implements the Simulated Annealing heuristic.
     """
-
     __metaclass__ = abc.ABCMeta
 
     # defaults
-    steps_min = 100000
-    idle_steps_fraction = 0.02
+    steps_minimum = 100000
+    steps_idle_fraction = 0.02
     history_length = 5000
     updates_every = 100
     copy_strategy = 'deepcopy'
@@ -112,10 +110,11 @@ class LateAcceptanceHillClimber(object):
     def terminate_search(self):
         """Terminate the loop in run method.
 
-        Provide own implementation if necessary.
+        Override for customization of termination criteria for
+        search.
         """
-        return ((self.step > self.steps_min)
-                and (self.step_idle > self.step*self.idle_steps_fraction))
+        return ((self.step > self.steps_minimum)
+                and (self.step_idle > self.step*self.steps_idle_fraction))
 
     def run(self):
         """Minimize the energy of the system by Late Acceptance Hill Climbing.
@@ -137,9 +136,12 @@ class LateAcceptanceHillClimber(object):
         self.best_energy = E
         self.best_step = 0
         self.energy_history = [E] * self.history_length
+        Ehmean = E
+        Ehvar = 0.
+        Nvar = float(max(self.history_length - 1, 1))
 
         trials = 0
-        self.update(self.step, self.step_idle, E)
+        self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
 
         while not self.terminate_search() and not self.user_exit:
             self.move()
@@ -152,10 +154,12 @@ class LateAcceptanceHillClimber(object):
                 self.step_idle = 0
 
             v = self.step % self.history_length
-            if E < self.energy_history[v] or E <= prev_energy:
+            Ev = self.energy_history[v]
+            if E < Ev or E <= prev_energy:
                 # accept candidate state
                 prev_state = self.copy_state(self.state)
                 prev_energy = E
+
                 if E < self.best_energy:
                     self.best_state = self.copy_state(self.state)
                     self.best_energy = E
@@ -164,12 +168,23 @@ class LateAcceptanceHillClimber(object):
                 # restore previous state
                 self.state = self.copy_state(prev_state)
                 E = prev_energy
-            if E < self.energy_history[v]:
+
+            if E < Ev:
+                # Update energy history
                 self.energy_history[v] = E
+
+                # and its mean and variance
+                dE = E - Ev
+                Ehmean_old = Ehmean
+
+                Ehmean += dE / self.history_length
+                Ehvar += dE * (E-Ehmean+Ev-Ehmean_old) / Nvar
+
             self.step += 1
             if trials == self.updates_every:
-                self.update(self.step, self.step_idle, E)
+                self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
                 trials = 0
+
         self.state = self.copy_state(self.best_state)
         if self.save_state_on_exit:
             self.save_state()
@@ -181,43 +196,27 @@ class LateAcceptanceHillClimber(object):
         """Wrapper for internal update. """
         self.default_update(*args, **kwargs)
 
-    def default_update(self, step, step_idle, E):
+    def default_update(self, step, step_idle, E, Ehmean, Ehvar):
         """Default update, outputs to stderr.
 
-        Prints the current number of idle steps, energy, acceptance rate,
-        improvement rate, elapsed time, and remaining time.
+        Prints the number of idle steps, current energy, energy history mean,
+        energy history coefficient of variation (CoV) and elapsed time.
 
-        The acceptance rate indicates the percentage of moves since the last
-        update that were accepted.  It includes moves that decreased the
-        energy, moves that left the energy unchanged, and moves that increased
-        the energy by late acceptance.
-
-        The improvement rate indicates the percentage of moves since the
-        last update that strictly decreased the energy.  Initially it will
-        include both moves that improved the overall state and moves that
-        simply undid previously accepted moves that increased the energy.
-        It will tend toward zero as the moves that can decrease the energy
-        are exhausted and moves that would increase the energy are no longer
-        present in the history buffer for late acceptance."""
-        elapsed = time.time() - self.start
-        s0 = "{0:>12s}{1:>12s}{2:>12s}{3:>12s}{4:>12s}{5:>12s}"
-        s1 = "\r{0:>12n}{1:>12.2e}{2:>12s}"
-        s2 = "\r{0:>12n}{1:>12.3e}{2:>11.2f}%{3:>11.2f}%{4:>12s}{5:>12s}\r"
-
+        The CoV indicates the variance in the history buffer. The CoV will
+        tend towards zero when the search is close to a minimum and can be
+        used as a indicator of time until the search is terminated.
+        """
         if step == 0:
-            print(s0.format(
-                "Idle steps", "Energy", "Accept", "Improve", "Elapsed",
-                "Remaining"), file=sys.stderr)
-            print(s1.format(step_idle, E, time_string(elapsed)),
-                  file=sys.stderr, end="\r")
-            sys.stderr.flush()
-        else:
-            remain = (self.steps_min - step) * (elapsed / step)
-            print(s2.format(
-                step_idle, E, 100.0 * 1, 100.0 * 1,
-                time_string(elapsed), time_string(remain)), file=sys.stderr,
-                end="\r")
-            sys.stderr.flush()
+            s0 = "{0:>12s}{1:>12s}{2:>12s}{3:>12s}{4:>12s}"
+            print(s0.format("Idle steps", "Energy", "Hist. Mean", "Hist. CoV",
+                            "Elapsed"), file=sys.stderr)
+
+        elapsed = time.time() - self.start
+        s1 = "\r{0:>12n}{1:>12.2e}{2:>12.2e}{3:>11.2f}%{4:>12s}"
+        print(s1.format(step_idle, E, Ehmean,
+                        Ehvar**.5 / Ehmean * 100,
+                        time_string(elapsed)), file=sys.stderr, end="\r")
+        sys.stderr.flush()
 
     def set_user_exit(self, signum, frame):
         """Raises the user_exit flag, further iterations are stopped.

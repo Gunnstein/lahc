@@ -4,6 +4,7 @@ import math
 import random
 from lahc import LateAcceptanceHillClimber
 
+
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -19,29 +20,33 @@ class Graph(object):
         else:
             self.figure = axes.figure
             self.axes = axes
-        plt.show(block=False)
-        plt.ion()
         self.xdata, self.ydata = [], []
-        self.line, = self.axes.plot([], [], 'k')
-        self.line.set_animated(True)
+        self.line, = self.axes.plot([], [], 'k-', lw=1.0)
+
         self.axes.set(xlabel='Iterations', ylabel='Energy')
         self.axes.grid(True)
-        self.axes.autoscale()
         self.canvas = self.figure.canvas
+        self.figure.show()
         self.canvas.draw()
         self.background = self.canvas.copy_from_bbox(self.axes.bbox)
 
     def update_graph(self, x, y):
         self.xdata.append(x)
         self.ydata.append(y)
-        self.relim(x, y)
+        if x % 1000 == 0:
+            self.relim(x, y)
         self.line.set_data(self.xdata, self.ydata)
         self.canvas.restore_region(self.background)
         self.axes.draw_artist(self.line)
         self.canvas.blit(self.axes.bbox)
 
     def relim(self, x, y):
-         self.axes.set(xlim=(0, self.steps_min), ylim=(0, max(self.ydata)))
+        if x > 0:
+            nu = 10**max(int(math.log10(x)), 3)
+        else:
+            nu = 10**3
+        n = ((x // nu)+1) * nu
+        self.axes.set(xlim=(0, n), ylim=(0, max(self.ydata)))
 
 
 def distance(a, b):
@@ -79,7 +84,6 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
         return e
 
     def update(self, *args, **kwargs):
-        self.maxstep = args[0]
         self.default_update(*args, **kwargs)
         self.update_graph(args[0], args[2])
 
@@ -123,14 +127,10 @@ if __name__ == '__main__':
                 distance_matrix[ka][kb] = 0.0
             else:
                 distance_matrix[ka][kb] = distance(va, vb)
-    fig, axes = plt.subplots()
-    plt.show(block=False)
 
-
-    tsp = TravellingSalesmanProblem(init_state, distance_matrix, axes)
-    tsp.steps_min = 500000
-    tsp.history_length = 10000
-    tsp.updates_every = 500
+    tsp = TravellingSalesmanProblem(init_state, distance_matrix)
+    tsp.history_length = 30000
+    tsp.updates_every = 1000
 
     # since our state is just a list, slice is the fastest way to copy
     tsp.copy_strategy = "slice"
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         state = state[1:] + state[:1]  # rotate NYC to start
 
     print()
-    print("%i mile route:" % e)
+    print("{0:.1f} mile route after {1:n} steps.".format(e, tsp.step-1))
     for city in state:
         print("\t", city)
-    print("LAHC", tsp.maxstep)
+    plt.show(block=True)

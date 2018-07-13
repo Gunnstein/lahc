@@ -39,6 +39,12 @@ convergence is roughly proportional to the history length. The runtime
 at any history length can therefore easily be estimated after applying
 the algorithm at a few different history lengths.
 
+As a general recommendation, start at a low history length and
+gradually increase it to determine the runtime and variation in the
+estimated results. Select a shorter history length that allows
+multiple runs in the time allocated for simulations rather than a
+longer history length at with a single run.
+
 
 ### Termination criteria
 

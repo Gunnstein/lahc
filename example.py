@@ -5,50 +5,6 @@ import random
 from lahc import LateAcceptanceHillClimber
 
 
-import matplotlib
-matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
-plt.rc('figure', dpi=144)
-plt.rc('text', usetex=False)
-plt.style.use('classic')
-
-
-class Graph(object):
-    def __init__(self, axes=None):
-        if axes is None:
-            self.figure, self.axes = plt.subplots()
-        else:
-            self.figure = axes.figure
-            self.axes = axes
-        self.xdata, self.ydata = [], []
-        self.line, = self.axes.plot([], [], 'k-', lw=1.0)
-
-        self.axes.set(xlabel='Iterations', ylabel='Energy')
-        self.axes.grid(True)
-        self.canvas = self.figure.canvas
-        self.figure.show()
-        self.canvas.draw()
-        self.background = self.canvas.copy_from_bbox(self.axes.bbox)
-
-    def update_graph(self, x, y):
-        self.xdata.append(x)
-        self.ydata.append(y)
-        if x % 1000 == 0:
-            self.relim(x, y)
-        self.line.set_data(self.xdata, self.ydata)
-        self.canvas.restore_region(self.background)
-        self.axes.draw_artist(self.line)
-        self.canvas.blit(self.axes.bbox)
-
-    def relim(self, x, y):
-        if x > 0:
-            nu = 10**max(int(math.log10(x)), 3)
-        else:
-            nu = 10**3
-        n = ((x // nu)+1) * nu
-        self.axes.set(xlim=(0, n), ylim=(0, max(self.ydata)))
-
-
 def distance(a, b):
     """Calculates distance between two latitude-longitude coordinates."""
     R = 3963  # radius of Earth (miles)
@@ -59,7 +15,7 @@ def distance(a, b):
         math.cos(lat1) * math.cos(lat2) * math.cos(lon1 - lon2))
 
 
-class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
+class TravellingSalesmanProblem(LateAcceptanceHillClimber):
 
     """Test annealer with a travelling salesman problem.
     """
@@ -68,7 +24,6 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
     def __init__(self, state, distance_matrix, axes=None):
         self.distance_matrix = distance_matrix
         LateAcceptanceHillClimber.__init__(self, initial_state=state)
-        Graph.__init__(self, axes=axes)
 
     def move(self):
         """Swaps two cities in the route."""
@@ -82,10 +37,6 @@ class TravellingSalesmanProblem(LateAcceptanceHillClimber, Graph):
         for i in range(len(self.state)):
             e += self.distance_matrix[self.state[i-1]][self.state[i]]
         return e
-
-    def update(self, *args, **kwargs):
-        self.default_update(*args, **kwargs)
-        self.update_graph(args[0], args[2])
 
 
 if __name__ == '__main__':
@@ -129,7 +80,8 @@ if __name__ == '__main__':
                 distance_matrix[ka][kb] = distance(va, vb)
 
     tsp = TravellingSalesmanProblem(init_state, distance_matrix)
-    tsp.history_length = 30000
+    tsp.steps_minimum = 20000
+    tsp.history_length = 50000
     tsp.updates_every = 1000
 
     # since our state is just a list, slice is the fastest way to copy
@@ -143,4 +95,3 @@ if __name__ == '__main__':
     print("{0:.1f} mile route after {1:n} steps.".format(e, tsp.step-1))
     for city in state:
         print("\t", city)
-    plt.show(block=True)

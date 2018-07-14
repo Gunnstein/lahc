@@ -17,7 +17,7 @@ Usage
 -----
 
 The package provides a base class for subclassing to a specific
-problem. The ``move`` and ``energy` methods must be implemented by the
+problem. The ``move`` and ``energy`` methods must be implemented by the
 user before the algorithm is applied. The search is started by calling
 the ``run`` method. The user controls the algorithm by adjusting a
 single algorithmic parameter, the history length, and the termination
@@ -30,7 +30,10 @@ The history length
 ------------------
 
 The behaviour of the LAHC algorithm is governed by a single parameter,
-the history length. If the history length is set to one, the LAHC
+the history length. To alter the history length of the algorithm, 
+adjust the ``history_length`` parameter of the class.
+
+If the history length is set to one, the LAHC
 algorithm is equivalent to a simple greedy Hill Climbing
 algorithm. Increasing the history length generally improves the
 solution quality and also increases the time to convergence.

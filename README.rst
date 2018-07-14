@@ -1,16 +1,20 @@
-# LAHC
+LAHC
+====
 
-Implementation of Late Acceptance Hill Climbing (LAHC) algorithm.
+Implementation of Late Acceptance Hill Climbing (LAHC) algorithm in
+python.
 
 
-## Installation
+Installation
+------------
 
 Download the repository to your computer and install, e.g. by **pip**
-
+::
     pip install .
 
 
-## Usage
+Usage
+-----
 
 The package provides a base class for subclassing to a specific
 problem. The `move` and `energy` methods must be implemented by the
@@ -22,7 +26,8 @@ criteria for the algorithm. See subsection on each of the topics below.
 The example is a good place to start using of the package.
 
 
-### The history length
+The history length
+------------------
 
 The behaviour of the LAHC algorithm is governed by a single parameter,
 the history length. If the history length is set to one, the LAHC
@@ -46,7 +51,8 @@ multiple runs in the time allocated for simulations rather than a
 longer history length at with a single run.
 
 
-### Termination criteria
+Termination criteria
+--------------------
 
 The algorithm terminates when the `terminate_search` method evaluates
 
@@ -69,19 +75,25 @@ Note that the user can also apply alternative termination criteria by
 implementing his own `terminate_search` method.
 
 
-## Acknowledgements
+Acknowledgements
+----------------
 
 The package is heavily influenced by the
-[simanneal](https://github.com/perrygeo/simanneal) project, which
+`simanneal<https://github.com/perrygeo/simanneal>`_ project, which
 implements the Simulated Annealing metaheuristic, another widely used
 and sucessful optimization method.
 
 
-## Support
+Support
+-------
 
-Please [open an issue](https://github.com/Gunnstein/lahc/issues/new) for support.
+Please `open an issue<https://github.com/Gunnstein/lahc/issues/new>`_ for support.
 
 
-## Contributing
+Contributing
+------------
 
-Please contribute using [Github Flow](https://guides.github.com/introduction/flow/). Create a branch, add commits, and [open a pull request](https://github.com/Gunnstein/lahc/compare/).
+Please contribute using `Github Flow
+<https://guides.github.com/introduction/flow/>`_.
+Create a branch, add commits, and
+`open a pull request<https://github.com/Gunnstein/lahc/compare/>`_.

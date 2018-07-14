@@ -79,7 +79,7 @@ Acknowledgements
 ----------------
 
 The package is heavily influenced by the
-`simanneal<https://github.com/perrygeo/simanneal>`_ project, which
+`simanneal <https://github.com/perrygeo/simanneal>`_ project, which
 implements the Simulated Annealing metaheuristic, another widely used
 and sucessful optimization method.
 
@@ -87,7 +87,7 @@ and sucessful optimization method.
 Support
 -------
 
-Please `open an issue<https://github.com/Gunnstein/lahc/issues/new>`_ for support.
+Please `open an issue <https://github.com/Gunnstein/lahc/issues/new>`_ for support.
 
 
 Contributing
@@ -96,4 +96,4 @@ Contributing
 Please contribute using `Github Flow
 <https://guides.github.com/introduction/flow/>`_.
 Create a branch, add commits, and
-`open a pull request<https://github.com/Gunnstein/lahc/compare/>`_.
+`open a pull request <https://github.com/Gunnstein/lahc/compare/>`_.

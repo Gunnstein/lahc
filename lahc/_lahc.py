@@ -141,7 +141,8 @@ class LateAcceptanceHillClimber(object):
         Nvar = float(max(self.history_length - 1, 1))
 
         trials = 0
-        self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
+        if self.updates_every > 0:
+            self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
 
         while not self.terminate_search() and not self.user_exit:
             self.move()

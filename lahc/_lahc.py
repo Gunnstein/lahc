@@ -92,7 +92,8 @@ class LateAcceptanceHillClimber(object):
         self.best_state = None
         self.best_energy = None
         self.best_step = None
-        self.start = None
+        self.time_start = None
+        self.time_end = None
 
         self.user_exit = False
         signal.signal(signal.SIGINT, self.set_user_exit)
@@ -123,9 +124,9 @@ class LateAcceptanceHillClimber(object):
         -------
             (state, energy) : the best state and energy found
         """
+        self.time_start = time.time()
         self.step = 0
         self.step_idle = 0
-        self.start = time.time()
 
         E = self.energy()
 
@@ -190,7 +191,7 @@ class LateAcceptanceHillClimber(object):
         if self.save_state_on_exit:
             self.save_state()
 
-        # Return best state and energy
+        self.time_end = time.time()
         return self.best_state, self.best_energy
 
     def update(self, *args, **kwargs):
@@ -212,7 +213,7 @@ class LateAcceptanceHillClimber(object):
             print(s0.format("Idle steps", "Energy", "Hist. Mean", "Hist. CoV",
                             "Elapsed"), file=sys.stderr)
 
-        elapsed = time.time() - self.start
+        elapsed = time.time() - self.time_start
         s1 = "\r{0:>12n}{1:>12.2e}{2:>12.2e}{3:>11.2f}%{4:>12s}"
         print(s1.format(step_idle, E, Ehmean,
                         Ehvar**.5 / Ehmean * 100,

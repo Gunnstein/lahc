@@ -1,6 +1,6 @@
-|lahc_logo|
+
 ====
-LAHC
+|lahc_logo| LAHC
 ====
 
 Implementation of Late Acceptance Hill Climbing (LAHC) algorithm in

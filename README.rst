@@ -1,10 +1,10 @@
-
+|lahc_logo|
 ====
-|lahc_logo| LAHC
+LAHC
 ====
 
-Implementation of Late Acceptance Hill Climbing (LAHC) algorithm in
-python.
+Implementation of Late Acceptance Hill Climbing (LAHC) algorithm by
+Burke and Bykov [Burke2017]_ in python.
 
 
 Installation
@@ -90,7 +90,8 @@ optimization method.
 Support
 -------
 
-Please `open an issue <https://github.com/Gunnstein/lahc/issues/new>`_ for support.
+Please `open an issue <https://github.com/Gunnstein/lahc/issues/new>`_
+for support.
 
 
 Contributing
@@ -103,4 +104,8 @@ Create a branch, add commits, and
 
 
 .. |lahc_logo| image:: logo.png
+    :align: center
     :target: https://github.com/gunnstein/lahc
+
+.. [BURKE2017] E. K. Burke, Y. Bykov, The late acceptance Hill-Climbing heuristic.
+	       European Journal of Operational Research. 258, 70–78 (2017).

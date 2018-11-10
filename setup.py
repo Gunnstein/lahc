@@ -8,8 +8,8 @@ method used to find a close-to-optimal solution in optimization
 problems.
 
 In contrast to several other metaheuristics it only relies on a single
-parameter (the history length), but has still shown to be competitive with
-more complex heuristics for many applications.
+parameter (the history length), but has still shown to be competitive
+with more complex heuristics for many applications.
 
    For more information see
 
@@ -32,7 +32,7 @@ setup(
     description='Late Acceptance Hill Climbing in Python',
     license='MIT',
     author='Gunnstein T. Frøseth',
-    author_email='gunnsteinthomas@gmail.com',
+    author_email='gunnstein@mailbox.org',
     url='https://github.com/gunnstein/lahc',
     long_description=LONG_DESCRIPTION,
     packages=find_packages(exclude=["test"]),

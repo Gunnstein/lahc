@@ -273,4 +273,4 @@ class SolutionHistoryMixIn(object):
         if self.step == 0:
             self.solution_history = []
         self.solution_history.append(args)
-        super(SolutionHistoryMixIn, self).update(self, *args, *kwargs)
+        super(SolutionHistoryMixIn, self).update(*args, *kwargs)

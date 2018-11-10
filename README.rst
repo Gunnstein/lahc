@@ -104,7 +104,6 @@ Create a branch, add commits, and
 
 
 .. |lahc_logo| image:: logo.png
-    :align: center
     :target: https://github.com/gunnstein/lahc
 
 .. [BURKE2017] E. K. Burke, Y. Bykov, The late acceptance Hill-Climbing heuristic.

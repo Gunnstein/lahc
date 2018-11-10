@@ -9,15 +9,7 @@ import signal
 import sys
 import time
 
-__all__ = ["LateAcceptanceHillClimber"]
-
-
-def time_string(seconds):
-    """Returns time in seconds as a string formatted HHHH:MM:SS."""
-    s = int(round(seconds))  # round to nearest second
-    h, s = divmod(s, 3600)   # get hours and remainder
-    m, s = divmod(s, 60)     # split remainder into minutes and seconds
-    return '%4i:%02i:%02i' % (h, m, s)
+__all__ = ["LateAcceptanceHillClimber", "SolutionHistoryMixIn"]
 
 
 class LateAcceptanceHillClimber(object):
@@ -30,12 +22,12 @@ class LateAcceptanceHillClimber(object):
     length) but has still shown to be competitive with more complex heuristics
     for many applications.
 
-   For more information see
+    For more information see
 
         E. K. Burke, Y. Bykov, The late acceptance Hill-Climbing heuristic.
         European Journal of Operational Research. 258, 70–78 (2017).
 
-   Any subclass of this abstract class should define the following methods:
+    Any subclass of this abstract class should define the following methods:
 
         `move`   : Change the state (move to a neighbor state)
         `energy` : Return the energy of the state
@@ -50,11 +42,12 @@ class LateAcceptanceHillClimber(object):
 
     Acknowledgements
     ----------------
-    This implementation is heavily influenced by the simanneal project found at
+    This implementation is heavily influenced by the `simanneal` project
+    which implements the Simulated Annealing heuristic, another
+    widely used and successful metaheuristic. Check out the `simanneal`
+    project at
 
         https://github.com/perrygeo/simanneal
-
-    which implements the Simulated Annealing heuristic.
     """
     __metaclass__ = abc.ABCMeta
 
@@ -141,14 +134,14 @@ class LateAcceptanceHillClimber(object):
         Ehvar = 0.
         Nvar = float(max(self.history_length - 1, 1))
 
-        trials = 0
+        steps_since_update = 0
         if self.updates_every > 0:
             self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
 
         while not self.terminate_search() and not self.user_exit:
             self.move()
             E = self.energy()
-            trials += 1
+            steps_since_update += 1
 
             if E >= prev_energy:
                 self.step_idle += 1
@@ -183,9 +176,9 @@ class LateAcceptanceHillClimber(object):
                 Ehvar += dE * (E-Ehmean+Ev-Ehmean_old) / Nvar
 
             self.step += 1
-            if trials == self.updates_every:
+            if steps_since_update == self.updates_every:
                 self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
-                trials = 0
+                steps_since_update = 0
 
         self.state = self.copy_state(self.best_state)
         if self.save_state_on_exit:
@@ -212,12 +205,12 @@ class LateAcceptanceHillClimber(object):
             s0 = "{0:>12s}{1:>12s}{2:>12s}{3:>12s}{4:>12s}"
             print(s0.format("Idle steps", "Energy", "Hist. Mean", "Hist. CoV",
                             "Elapsed"), file=sys.stderr)
-
-        elapsed = time.time() - self.time_start
+        telapsed = time.strftime(
+            "%H:%M:%S", time.gmtime(time.time() - self.time_start))
         s1 = "\r{0:>12n}{1:>12.2e}{2:>12.2e}{3:>11.2f}%{4:>12s}"
         print(s1.format(step_idle, E, Ehmean,
                         Ehvar**.5 / Ehmean * 100,
-                        time_string(elapsed)), file=sys.stderr, end="\r")
+                        telapsed), file=sys.stderr, end="\r")
         sys.stderr.flush()
 
     def set_user_exit(self, signum, frame):
@@ -267,3 +260,17 @@ class LateAcceptanceHillClimber(object):
         """
         with open(fname, 'rb') as fh:
             self.state = pickle.load(fh)
+
+
+class SolutionHistoryMixIn(object):
+    """Store the solution history on update.
+
+    Use this mixin to complement the `update` method and store the
+    solution history in a list named `solution_history`.
+
+    """
+    def update(self, *args, **kwargs):
+        if self.step == 0:
+            self.solution_history = []
+        self.solution_history.append(args)
+        super(SolutionHistoryMixIn, self).update(self, *args, *kwargs)

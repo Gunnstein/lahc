@@ -1,3 +1,5 @@
+|lahc_logo|
+====
 LAHC
 ====
 
@@ -95,6 +97,10 @@ Contributing
 ------------
 
 Please contribute using `Github Flow
-<https://guides.github.com/introduction/flow/>`_. Create a branch, add
-commits, and `open a pull request
-<https://github.com/Gunnstein/lahc/compare/>`_.
+<https://guides.github.com/introduction/flow/>`_.
+Create a branch, add commits, and
+`open a pull request <https://github.com/Gunnstein/lahc/compare/>`_.
+
+
+.. |lahc_logo| image:: logo.png
+    :target: https://github.com/gunnstein/lahc

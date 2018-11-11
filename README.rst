@@ -101,9 +101,16 @@ the solution.
 Acknowledgements
 ----------------
 
-The package is heavily influenced by the simanneal_ project, which implements
-the Simulated Annealing metaheuristic, a widely used and sucessful
-optimization method.
+Both the structure and parts of the source code for the
+``LateAcceptanceHillClimber`` class is copied from the ``Annealer``
+class in the simanneal_ python project. All contributions from the
+simanneal_ project is hereby gratefully acknowledged. Check out the
+simanneal_ project at
+
+    https://github.com/perrygeo/simanneal
+
+which implements the widely used and sucessful Simulated Annealing
+metaheuristic.
 
 
 Support

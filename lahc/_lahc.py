@@ -43,12 +43,16 @@ class LateAcceptanceHillClimber(object):
 
     Acknowledgements
     ----------------
-    This implementation is heavily influenced by the `simanneal` project
-    which implements the Simulated Annealing heuristic, another
-    widely used and successful metaheuristic. Check out the `simanneal`
-    project at
+    Both the structure and parts of the source code for the
+    `LateAcceptanceHillClimber` class is copied from the
+    `Annealer` class in the `simanneal` python package. All
+    contributions from the `simanneal` project is hereby gratefully
+    acknowledged. Check out the `simanneal` project at
 
         https://github.com/perrygeo/simanneal
+
+    which implements the widely used and sucessful Simulated Annealing
+    metaheuristic.
     """
     __metaclass__ = abc.ABCMeta
 

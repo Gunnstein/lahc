@@ -11,8 +11,9 @@ Installation
 ------------
 
 Download the repository to your computer and install, e.g. by **pip**
+
 ::
-    pip install .
+   pip install .
 
 
 Usage
@@ -20,12 +21,23 @@ Usage
 
 The package provides a base class for subclassing to a specific
 problem. The ``move`` and ``energy`` methods must be implemented by the
-user before the algorithm is applied. The search is started by calling
-the ``run`` method. The user controls the algorithm by adjusting a
-single algorithmic parameter, the ``history length``, and the termination
-criteria for the algorithm. See subsection on each of the topics below.
+user before the algorithm is applied.
+
+The user controls the algorithm by adjusting a single algorithmic
+parameter, the ``history length``, and the termination criteria for
+the algorithm. See subsection on each of the topics below.
+
+The search is started by calling the ``run`` method.
 
 The example is a good place to start using of the package.
+
+Note
+    The implementation relies heavily on copying the state. The
+    default copy strategy (``copy_strategy='deepcopy'``) relies on the
+    STL ``copy.deepcopy`` method which works for most data structures,
+    but is typically quite slow. **Large** performance gains can be
+    easily obtained by adapting a different copying strategy, see the
+    documentation of the ``copy_state`` method.
 
 
 The history length
@@ -73,7 +85,7 @@ The default value of the ``steps_idle_fraction`` (0.02) is generally a
 good choice for a variety of problems, but the default
 ``steps_minimum`` value (100000) may have to be adjusted depending on
 the problem. As a general recommendation, the user should reduce the
-``step_minimum`` parameter if the algorithm consistently terminates at
+``steps_minimum`` parameter if the algorithm consistently terminates at
 ``steps_minimum`` after running for a long period without improving
 the solution.
 
@@ -81,8 +93,7 @@ the solution.
 Acknowledgements
 ----------------
 
-The package is heavily influenced by the `simanneal
-<https://github.com/perrygeo/simanneal>`_ project, which implements
+The package is heavily influenced by the simanneal_ project, which implements
 the Simulated Annealing metaheuristic, a widely used and sucessful
 optimization method.
 
@@ -102,9 +113,16 @@ Please contribute using `Github Flow
 Create a branch, add commits, and
 `open a pull request <https://github.com/Gunnstein/lahc/compare/>`_.
 
-
-.. |lahc_logo| image:: logo.png
+.. |lahc_logo| image:: https://github.com/Gunnstein/lahc/blob/master/logo.png
     :target: https://github.com/gunnstein/lahc
 
+
+Bibliography
+------------
 .. [BURKE2017] E. K. Burke, Y. Bykov, The late acceptance Hill-Climbing heuristic.
 	       European Journal of Operational Research. 258, 70–78 (2017).
+
+
+
+
+.. _simanneal: https://github.com/perrygeo/simanneal

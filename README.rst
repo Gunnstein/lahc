@@ -10,11 +10,18 @@ Burke and Bykov [Burke2017]_ in python.
 Installation
 ------------
 
-Download the repository to your computer and install, e.g. by **pip**
+Either download the repository to your computer and install, e.g. by **pip**
 
 ::
 
    pip install .
+
+
+or install directly from the python package index.
+
+::
+
+   pip install lahc
 
 
 Usage

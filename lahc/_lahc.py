@@ -9,35 +9,36 @@ import signal
 import sys
 import time
 
-__all__ = ["LateAcceptanceHillClimber", "SolutionHistoryMixIn"]
+__all__ = ["LateAcceptanceHillClimber", "RecordUpdateMixin"]
 
 
 class LateAcceptanceHillClimber(object):
     """Abstract class for Late Acceptance Hill climbing heuristic.
 
-    The Late Acceptance Hill Climbing (LAHC) heuristic is an extension of the
-    simple Hill Climber where worse solutions can be accepted during the
-    solution process based on the solution history. In contrast to several
-    other metaheuristics it only relies on a single parameter (the history
-    length) but has still shown to be competitive with more complex heuristics
-    for many applications.
+    The Late Acceptance Hill Climbing (LAHC) heuristic is an extension
+    of the simple Hill Climber where worse solutions can be accepted
+    during the solution process based on the solution history. In
+    contrast to several other metaheuristics it only relies on a
+    single parameter (the history length) but has still shown to be
+    competitive with more complex heuristics for many applications.
 
     For more information see
 
         E. K. Burke, Y. Bykov, The late acceptance Hill-Climbing heuristic.
         European Journal of Operational Research. 258, 70–78 (2017).
 
-    Any subclass of this abstract class should define the following methods:
+    Any subclass of this abstract class must define the following methods:
 
         `move`   : Change the state (move to a neighbor state)
         `energy` : Return the energy of the state
 
 
-    The implementation relies heavily on copying state, the default copy
-    strategy (copy_strategy='deepcopy') uses the STL copy.deepcopy function
-    that is slow for many data structures. Large performance gains can be
-    obtained using slicing for list type structures or by providing your own
-    copying method for the state.
+    The implementation relies heavily on copying state, the default
+    copy strategy (copy_strategy='deepcopy') uses the STL
+    copy.deepcopy function which is slow for many data structures.
+    Large performance gains can be obtained using slicing
+    (copy_strategy='slice') for list type structures or by providing
+    your own copying method for the state (copy_strategy='method').
 
 
     Acknowledgements
@@ -60,9 +61,7 @@ class LateAcceptanceHillClimber(object):
     save_state_on_exit = False
 
     def __init__(self, initial_state=None, load_state=None):
-        """Initializer for the class.
-
-        Either initial_state or load_state must be given.
+        """Either initial_state or load_state must be given.
 
         Arguments
         ---------
@@ -134,14 +133,13 @@ class LateAcceptanceHillClimber(object):
         Ehvar = 0.
         Nvar = float(max(self.history_length - 1, 1))
 
-        steps_since_update = 0
         if self.updates_every > 0:
             self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
+        steps_since_update = 0
 
         while not self.terminate_search() and not self.user_exit:
             self.move()
             E = self.energy()
-            steps_since_update += 1
 
             if E >= prev_energy:
                 self.step_idle += 1
@@ -176,6 +174,8 @@ class LateAcceptanceHillClimber(object):
                 Ehvar += dE * (E-Ehmean+Ev-Ehmean_old) / Nvar
 
             self.step += 1
+            steps_since_update += 1
+
             if steps_since_update == self.updates_every:
                 self.update(self.step, self.step_idle, E, Ehmean, Ehvar)
                 steps_since_update = 0
@@ -194,22 +194,20 @@ class LateAcceptanceHillClimber(object):
     def default_update(self, step, step_idle, E, Ehmean, Ehvar):
         """Default update, outputs to stderr.
 
-        Prints the number of idle steps, current energy, energy history mean,
-        energy history coefficient of variation (CoV) and elapsed time.
+        Prints the number of idle steps, current energy, energy
+        history mean, energy history standard deviation and elapsed
+        time.
 
-        The CoV indicates the variance in the history buffer. The CoV will
-        tend towards zero when the search is close to a minimum and can be
-        used as a indicator of time until the search is terminated.
         """
         if step == 0:
             s0 = "{0:>12s}{1:>12s}{2:>12s}{3:>12s}{4:>12s}"
-            print(s0.format("Idle steps", "Energy", "Hist. Mean", "Hist. CoV",
+            print(s0.format("Idle steps", "Energy", "Hist. Mean", "Hist. Std",
                             "Elapsed"), file=sys.stderr)
         telapsed = time.strftime(
             "%H:%M:%S", time.gmtime(time.time() - self.time_start))
-        s1 = "\r{0:>12n}{1:>12.2e}{2:>12.2e}{3:>11.2f}%{4:>12s}"
+        s1 = "{0:>12n}{1:>12.2e}{2:>12.2e}{3:>12.2e}{4:>12s}"
         print(s1.format(step_idle, E, Ehmean,
-                        Ehvar**.5 / Ehmean * 100,
+                        abs(Ehvar**.5),
                         telapsed), file=sys.stderr, end="\r")
         sys.stderr.flush()
 
@@ -262,15 +260,14 @@ class LateAcceptanceHillClimber(object):
             self.state = pickle.load(fh)
 
 
-class SolutionHistoryMixIn(object):
-    """Store the solution history on update.
+class RecordUpdateMixin(object):
+    """Record the updates in a list
 
-    Use this mixin to complement the `update` method and store the
-    solution history in a list named `solution_history`.
-
+    Use this mixin to complement the `update` method and record the
+    solution history in a list named `update_history`.
     """
     def update(self, *args, **kwargs):
-        if self.step == 0:
-            self.solution_history = []
-        self.solution_history.append(args)
-        super(SolutionHistoryMixIn, self).update(*args, *kwargs)
+        if args[0] == 0:
+            self.update_history = []
+        self.update_history.append(args)
+        super(RecordUpdateMixin, self).update(*args, *kwargs)
